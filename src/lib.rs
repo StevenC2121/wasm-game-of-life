@@ -89,7 +89,27 @@ impl Universe {
     }
 
     pub fn cells(&self) -> *const u32 {
-        self.cells.as_slice().as_ptr()
+        let slice = self.cells.as_slice();
+
+        // Ensure compatibility by converting usize slice to u32 slice
+        let ptr = slice.as_ptr() as *const u32;
+        ptr
+    }
+
+    /// Set the width of the universe.
+    ///
+    /// Resets all cells to the dead state.
+    pub fn set_width(&mut self, width: u32) {
+        self.width = width;
+        self.cells = FixedBitSet::with_capacity((width * self.height) as usize);
+    }
+
+    /// Set the height of the universe.
+    ///
+    /// Resets all cells to the dead state.
+    pub fn set_height(&mut self, height: u32) {
+        self.height = height;
+        self.cells = FixedBitSet::with_capacity((self.width * height) as usize);
     }
 }
 
@@ -104,5 +124,23 @@ impl fmt::Display for Universe {
             write!(f, "\n")?;
         }
         Ok(())
+    }
+}
+
+impl Universe {
+    /// Get the dead and alive values of the entire universe.
+    pub fn get_cells(&self) -> Vec<bool> {
+        (0..self.width * self.height)
+            .map(|i| self.cells.contains(i as usize)) // Convert each bit into a bool
+            .collect()
+    }
+
+    /// Set cells to be alive in a universe by passing the row and column
+    /// of each cell as an array.
+    pub fn set_cells(&mut self, cells: &[(u32, u32)]) {
+        for &(row, col) in cells {
+            let idx = self.get_index(row, col);
+            self.cells.set(idx, true); // Set the bit to alive
+        }
     }
 }

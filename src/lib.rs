@@ -4,6 +4,14 @@ use wasm_bindgen::prelude::*;
 use js_sys::Math;
 extern crate fixedbitset;
 use fixedbitset::FixedBitSet;
+use web_sys::console;
+extern crate web_sys;
+extern crate console_error_panic_hook;
+
+#[wasm_bindgen]
+pub fn init_panic_hook() {
+    console_error_panic_hook::set_once();
+}
 
 #[wasm_bindgen]
 pub struct Universe {
@@ -57,6 +65,7 @@ impl Universe {
         }
 
         self.cells = next;
+        console::log_1(&"Universe tick updated!".into());
     }
 
     pub fn new() -> Universe {
@@ -68,6 +77,8 @@ impl Universe {
         for i in 0..size {
             cells.set(i, Math::random() < 0.5);
         }
+
+        console::log_1(&"Universe created with random cells!".into());
 
         Universe {
             width,
@@ -90,26 +101,20 @@ impl Universe {
 
     pub fn cells(&self) -> *const u32 {
         let slice = self.cells.as_slice();
-
-        // Ensure compatibility by converting usize slice to u32 slice
         let ptr = slice.as_ptr() as *const u32;
         ptr
     }
 
-    /// Set the width of the universe.
-    ///
-    /// Resets all cells to the dead state.
     pub fn set_width(&mut self, width: u32) {
         self.width = width;
         self.cells = FixedBitSet::with_capacity((width * self.height) as usize);
+        console::log_1(&format!("Width set to: {}", width).into());
     }
 
-    /// Set the height of the universe.
-    ///
-    /// Resets all cells to the dead state.
     pub fn set_height(&mut self, height: u32) {
         self.height = height;
         self.cells = FixedBitSet::with_capacity((self.width * height) as usize);
+        console::log_1(&format!("Height set to: {}", height).into());
     }
 }
 
@@ -128,19 +133,17 @@ impl fmt::Display for Universe {
 }
 
 impl Universe {
-    /// Get the dead and alive values of the entire universe.
     pub fn get_cells(&self) -> Vec<bool> {
         (0..self.width * self.height)
-            .map(|i| self.cells.contains(i as usize)) // Convert each bit into a bool
+            .map(|i| self.cells.contains(i as usize))
             .collect()
     }
 
-    /// Set cells to be alive in a universe by passing the row and column
-    /// of each cell as an array.
     pub fn set_cells(&mut self, cells: &[(u32, u32)]) {
         for &(row, col) in cells {
             let idx = self.get_index(row, col);
-            self.cells.set(idx, true); // Set the bit to alive
+            self.cells.set(idx, true);
         }
+        console::log_1(&format!("{} cells set to alive.", cells.len()).into());
     }
 }

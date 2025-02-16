@@ -116,6 +116,12 @@ impl Universe {
         self.cells = FixedBitSet::with_capacity((self.width * height) as usize);
         console::log_1(&format!("Height set to: {}", height).into());
     }
+    
+    pub fn toggle_cell(&mut self, row: u32, column: u32) {
+        let idx = self.get_index(row, column);
+        let current = self.cells.contains(idx);
+        self.cells.set(idx, !current);
+    }
 }
 
 impl fmt::Display for Universe {
